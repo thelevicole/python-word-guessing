@@ -247,8 +247,6 @@ while success is None:
 			success = False
 			print('I ran out of words, you win!')
 
-		continue
-
 
 
 
