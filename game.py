@@ -1,6 +1,7 @@
 import time
 import random
 import argparse
+import collections
 
 # Get commandline arguments
 parser = argparse.ArgumentParser(description = 'Attempt to guess a word you are thinking of.')
@@ -10,7 +11,7 @@ args = parser.parse_args()
 
 # Adhoc variables
 words		= open('dictionary.txt').read().lower().splitlines()
-alphabet	= list('eariotnslcudpmhgbfywkvxzjq') # Alphabet in order of most used
+alphabet	= list('abcdefghijklmnopqrstuvwxyz')
 example		= random.choice(words)	# Choose a random word as an example
 success		= None					# False for failed, string for success, None for no guesses
 wrong		= []					# Store characters that are NOT in the users word
@@ -101,6 +102,30 @@ def filter_words():
 
 	return filtered
 
+#
+# Order alphabet by most frequent character in `words` list
+#
+# @return	void
+#
+def order_alphabet():
+	global alphabet
+
+	combined	= ''.join(words)
+	common_2d	= collections.Counter(combined).most_common()
+	common_list	= [char[0] for char in common_2d]
+
+	ordered = []
+
+	for char in common_list:
+		if char in alphabet:
+			ordered.append(char)
+
+	for char in alphabet:
+		if char not in ordered:
+			ordered.append(char)
+
+	alphabet = ordered
+
 
 #
 # Filter alphabet of characters that don't appear in the words list
@@ -123,6 +148,8 @@ def filter_alphabet():
 			alphabet.remove(char)
 			if char not in wrong:
 				wrong.append(char)
+
+	order_alphabet()
 
 #
 # Ask the user for their word length and confirm, repeat if wrong
@@ -178,6 +205,9 @@ loading()
 
 # Filter words by length matching users input (`word_length`)
 words = [word for word in words if len(word) is word_length]
+
+# Order alphabet by most occuring character in list of words
+order_alphabet()
 
 # Cycle through `alphabet` until we can guess the word
 while success is None:
