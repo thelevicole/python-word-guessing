@@ -187,10 +187,11 @@ while success is None:
 		# Get next character to check
 		next_char = alphabet.pop(0)
 
+		# Ask if this character occurs in their word
+		count = int( input('How many times does "%s" occur in your word? ' % next_char) )
+
 		# Ask the user if this character is in their word
-		if check('Is the letter "%s" in your word? ' % next_char):
-			# If so, ask how many times
-			count = int( input('Nice! How many times does "%s" occur in your word? ' % next_char) )
+		if count > 0:
 			correct[next_char] = count
 		else:
 			wrong.append(next_char)
