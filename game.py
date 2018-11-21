@@ -28,8 +28,21 @@ maximum = len( max(words, key = len) )
 # @return	boolean
 #
 def check(question):
-	response = input(question + ' [Yes/no] ')
+	response = input('%s [Yes/no] ' % question)
 	return response.lower() in ['y', 'yes', '1', 'true']
+
+#
+# Check if user input is an integer
+#
+# @param	string			question	Question that will be printed to the user
+# @return	integer|boolean				False if not an integer
+#
+def integer(question):
+	try:
+		return int( input('%s ' % question) )
+	except ValueError:
+		print('Please enter a valid number.')
+		return False
 
 #
 # Debug helper, only prints string if debug argument is passed
@@ -118,17 +131,18 @@ def filter_alphabet():
 # @return	integer
 #
 def ask_for_length(confirm = True):
-	word_length = None
+	word_length = False
 
 	# Loop untile word_lenght is valid
-	while word_length is None or word_length > maximum or word_length < minimum:
+	while word_length is False or word_length > maximum or word_length < minimum:
 
 		# If length is invalid, print helper text
-		if word_length is not None:
+		if word_length is not False:
 			print('Your word should have a length between %d and %d' % (minimum, maximum))
 
 		# Store users input
-		word_length = int( input('Enter your word length here: ') )
+		word_length = integer('Enter your word length here:')
+
 
 	# Confirm the users input
 	if confirm:
@@ -185,16 +199,23 @@ while success is None:
 		guesses += 1
 
 		# Get next character to check
-		next_char = alphabet.pop(0)
+		next_char = alphabet[0]
 
 		# Ask if this character occurs in their word
-		count = int( input('How many times does "%s" occur in your word? ' % next_char) )
+		count = integer('How many times does "%s" occur in your word? ' % next_char)
+
+		# If user input is invalid, loop round and try again
+		if count is False:
+			continue
 
 		# Ask the user if this character is in their word
 		if count > 0:
 			correct[next_char] = count
 		else:
 			wrong.append(next_char)
+
+		# Now remove from alphabet
+		alphabet.remove(next_char)
 
 	# Update words list now we know what characters are/not in the word
 	words = filter_words()
