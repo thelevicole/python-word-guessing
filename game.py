@@ -137,8 +137,13 @@ Example: %s (length: %d)''' % (minimum, maximum, example, len(example)))
 				print('I ran out of words, you win!')
 
 # ----------------------------------------------------
-# ASKER MODE (Player guesses computer's word)
+# ASKER MODE (Player guesses computer's word - Enhanced)
 # ----------------------------------------------------
+ACTION_MAPPING = {
+    'l': 'letter', 'letter': 'letter', 1: 'letter', '1': 'letter',
+    'w': 'word', 'word': 'word', 2: 'word', '2': 'word'
+}
+
 def play_as_asker(all_words):
 	secret_word = random.choice(all_words)
 	guessed_letters = set()
@@ -153,34 +158,53 @@ def play_as_asker(all_words):
 		print('\nWord: %s' % display)
 
 		if "_" not in display:
-			print('Congratulations! You guessed the word: "%s"' % secret_word)
+			print('🎉 Congratulations! You guessed the word: "%s"' % secret_word)
 			break
 
 		if wrong_guesses >= max_wrong:
-			print('Out of guesses! The word was: "%s"' % secret_word)
+			print('❌ Out of guesses! The word was: "%s"' % secret_word)
 			break
 
-		guess = input('Guess a letter: ').strip().lower()
+		# Select guess mode (Letter or Full Word using shorthand)
+		action_input = input('Action: Guess (L)etter or Full (W)ord? [L/w]: ').strip().lower()
+		action = ACTION_MAPPING.get(action_input, 'letter') if action_input else 'letter'
 
-		if len(guess) != 1 or not guess.isalpha():
-			print('Please enter a single letter.')
-			continue
-
-		if guess in guessed_letters:
-			print('You already guessed "%s". Try again.' % guess)
-			continue
-
-		guessed_letters.add(guess)
-
-		if guess in secret_word:
-			print('Good choice! "%s" is in the word.' % guess)
+		if action == 'word':
+			full_guess = input('Enter your full word guess: ').strip().lower()
+			if full_guess == secret_word:
+				print('🎉 Spot on! You guessed the full word correctly: "%s"' % secret_word)
+				break
+			else:
+				wrong_guesses += 1
+				print('Incorrect word guess! Strikes: %d/%d' % (wrong_guesses, max_wrong))
 		else:
-			wrong_guesses += 1
-			print('Incorrect! Strikes: %d/%d' % (wrong_guesses, max_wrong))
+			guess = input('Guess a letter: ').strip().lower()
+
+			if len(guess) != 1 or not guess.isalpha():
+				print('Please enter a single letter.')
+				continue
+
+			if guess in guessed_letters:
+				print('You already guessed "%s". Try again.' % guess)
+				continue
+
+			guessed_letters.add(guess)
+
+			if guess in secret_word:
+				print('Good choice! "%s" is in the word.' % guess)
+			else:
+				wrong_guesses += 1
+				print('Incorrect! Strikes: %d/%d' % (wrong_guesses, max_wrong))
 
 # ----------------------------------------------------
-# MAIN MENU
+# MAIN MENU (Shorthand Supported)
 # ----------------------------------------------------
+MENU_MAPPING = {
+    '1': 'asker', 'a': 'asker', 'asker': 'asker',
+    '2': 'replier', 'r': 'replier', 'replier': 'replier',
+    '3': 'quit', 'q': 'quit', 'quit': 'quit', 'exit': 'quit'
+}
+
 def main():
 	try:
 		with open('dictionary.txt', 'r') as f:
@@ -194,21 +218,22 @@ def main():
 
 	while True:
 		print('\n=== WORD GUESSING GAME ===')
-		print('1. Asker  (You guess the computer\'s word)')
-		print('2. Replier (Computer guesses your word)')
-		print('3. Quit')
+		print('(1/A)sker   - You guess the computer\'s word')
+		print('(2/R)eplier - Computer guesses your word')
+		print('(3/Q)uit    - Exit game')
 		
-		choice = input('Select game mode (1-3): ').strip()
+		raw_choice = input('Select game mode [1/2/3 or A/R/Q]: ').strip().lower()
+		choice = MENU_MAPPING.get(raw_choice)
 
-		if choice == '1':
+		if choice == 'asker':
 			play_as_asker(all_words)
-		elif choice == '2':
+		elif choice == 'replier':
 			play_as_replier(all_words)
-		elif choice == '3':
+		elif choice == 'quit':
 			print('Thanks for playing!')
 			break
 		else:
-			print('Invalid selection. Please enter 1, 2, or 3.')
+			print('Invalid selection. Please enter 1/A, 2/R, or 3/Q.')
 
 if __name__ == "__main__":
 	main()
