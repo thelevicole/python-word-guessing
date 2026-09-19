@@ -9,7 +9,6 @@ parser.add_argument('--debug', dest='debug', action='store_true')
 parser.set_defaults(debug = False)
 args = parser.parse_args()
 
-# Helper Functions from original file
 def check(question):
 	response = input('%s [Yes/no] ' % question)
 	return response.lower() in ['y', 'yes', '1', 'true']
@@ -34,7 +33,7 @@ def loading(length = 3, timeout = 0.1, symbol = '.'):
 			print(string)
 
 # ----------------------------------------------------
-# REPLIER MODE (Original computer-guessing logic)
+# REPLIER MODE (Computer guesses player's word)
 # ----------------------------------------------------
 def play_as_replier(all_words):
 	words = list(all_words)
@@ -62,7 +61,7 @@ def play_as_replier(all_words):
 		combined = ''.join(words)
 		common_2d = collections.Counter(combined).most_common()
 		common_list = [char[0] for char in common_2d]
-		ordered = [char for char in common_list if char in alphabet]
+		ordered = [char for char in alphabet if char in common_list]
 		ordered.extend([char for char in alphabet if char not in ordered])
 		alphabet = ordered
 
@@ -137,11 +136,12 @@ Example: %s (length: %d)''' % (minimum, maximum, example, len(example)))
 				print('I ran out of words, you win!')
 
 # ----------------------------------------------------
-# ASKER MODE (Player guesses computer's word - Enhanced)
+# ASKER MODE (Shorthand, Word Guess & Hint System)
 # ----------------------------------------------------
 ACTION_MAPPING = {
-    'l': 'letter', 'letter': 'letter', 1: 'letter', '1': 'letter',
-    'w': 'word', 'word': 'word', 2: 'word', '2': 'word'
+    'l': 'letter', 'letter': 'letter', '1': 'letter',
+    'w': 'word', 'word': 'word', '2': 'word',
+    'h': 'hint', 'hint': 'hint', '3': 'hint'
 }
 
 def play_as_asker(all_words):
@@ -165,11 +165,24 @@ def play_as_asker(all_words):
 			print('❌ Out of guesses! The word was: "%s"' % secret_word)
 			break
 
-		# Select guess mode (Letter or Full Word using shorthand)
-		action_input = input('Action: Guess (L)etter or Full (W)ord? [L/w]: ').strip().lower()
+		action_input = input('Action: (L)etter, Full (W)ord, or (H)int? [L/w/h]: ').strip().lower()
 		action = ACTION_MAPPING.get(action_input, 'letter') if action_input else 'letter'
 
-		if action == 'word':
+		if action == 'hint':
+			unrevealed = [c for c in secret_word if c not in guessed_letters]
+			if not unrevealed:
+				print('All letters are already revealed!')
+				continue
+			
+			vowels = [c for c in unrevealed if c in 'aeiou']
+			hint_char = random.choice(vowels) if vowels else random.choice(unrevealed)
+			
+			guessed_letters.add(hint_char)
+			wrong_guesses += 1
+			print('💡 HINT: The letter "%s" is in the word! (Cost: 1 Strike)' % hint_char)
+			print('Current Strikes: %d/%d' % (wrong_guesses, max_wrong))
+
+		elif action == 'word':
 			full_guess = input('Enter your full word guess: ').strip().lower()
 			if full_guess == secret_word:
 				print('🎉 Spot on! You guessed the full word correctly: "%s"' % secret_word)
