@@ -136,7 +136,7 @@ Example: %s (length: %d)''' % (minimum, maximum, example, len(example)))
 				print('I ran out of words, you win!')
 
 # ----------------------------------------------------
-# ASKER MODE (Shorthand, Word Guess & Hint System)
+# ASKER MODE (Custom Guesses, Shorthand & Hint System)
 # ----------------------------------------------------
 ACTION_MAPPING = {
     'l': 'letter', 'letter': 'letter', '1': 'letter',
@@ -144,13 +144,33 @@ ACTION_MAPPING = {
     'h': 'hint', 'hint': 'hint', '3': 'hint'
 }
 
+def configure_max_guesses():
+	"""Prompts user to select guess limit: 0 (Sudden Death), 1-10, or U (Unlimited)."""
+	while True:
+		user_input = input('Set maximum allowed wrong guesses [0 = Sudden Death, 1-10, or U = Unlimited]: ').strip().lower()
+		
+		if user_input in ['u', 'unlimited', 'none']:
+			print('Difficulty Mode: UNLIMITED GUESSES (Sandbox)')
+			return None  # None indicates unlimited mode
+		
+		if user_input.isdigit():
+			val = int(user_input)
+			if val == 0:
+				print('Difficulty Mode: SUDDEN DEATH (1 wrong guess allowed)')
+				return 1
+			elif 1 <= val <= 10:
+				print(f'Difficulty Mode: {val} WRONG GUESSES ALLOWED')
+				return val
+		
+		print('Invalid selection. Please enter 0 for Sudden Death, a number between 1 and 10, or U for Unlimited.')
+
 def play_as_asker(all_words):
 	secret_word = random.choice(all_words)
 	guessed_letters = set()
 	wrong_guesses = 0
-	max_wrong = 6
-
+	
 	print('\n--- You are guessing my word! ---')
+	max_wrong = configure_max_guesses()
 	print('My secret word is %d letters long.' % len(secret_word))
 
 	while True:
@@ -161,7 +181,7 @@ def play_as_asker(all_words):
 			print('🎉 Congratulations! You guessed the word: "%s"' % secret_word)
 			break
 
-		if wrong_guesses >= max_wrong:
+		if max_wrong is not None and wrong_guesses >= max_wrong:
 			print('❌ Out of guesses! The word was: "%s"' % secret_word)
 			break
 
@@ -178,9 +198,12 @@ def play_as_asker(all_words):
 			hint_char = random.choice(vowels) if vowels else random.choice(unrevealed)
 			
 			guessed_letters.add(hint_char)
-			wrong_guesses += 1
-			print('💡 HINT: The letter "%s" is in the word! (Cost: 1 Strike)' % hint_char)
-			print('Current Strikes: %d/%d' % (wrong_guesses, max_wrong))
+			if max_wrong is not None:
+				wrong_guesses += 1
+				print('💡 HINT: The letter "%s" is in the word! (Cost: 1 Strike)' % hint_char)
+				print(f'Current Strikes: {wrong_guesses}/{max_wrong}')
+			else:
+				print('💡 HINT: The letter "%s" is in the word! (Unlimited Mode - No Penalty)' % hint_char)
 
 		elif action == 'word':
 			full_guess = input('Enter your full word guess: ').strip().lower()
@@ -188,8 +211,11 @@ def play_as_asker(all_words):
 				print('🎉 Spot on! You guessed the full word correctly: "%s"' % secret_word)
 				break
 			else:
-				wrong_guesses += 1
-				print('Incorrect word guess! Strikes: %d/%d' % (wrong_guesses, max_wrong))
+				if max_wrong is not None:
+					wrong_guesses += 1
+					print(f'Incorrect word guess! Strikes: {wrong_guesses}/{max_wrong}')
+				else:
+					print('Incorrect word guess!')
 		else:
 			guess = input('Guess a letter: ').strip().lower()
 
@@ -206,8 +232,11 @@ def play_as_asker(all_words):
 			if guess in secret_word:
 				print('Good choice! "%s" is in the word.' % guess)
 			else:
-				wrong_guesses += 1
-				print('Incorrect! Strikes: %d/%d' % (wrong_guesses, max_wrong))
+				if max_wrong is not None:
+					wrong_guesses += 1
+					print(f'Incorrect! Strikes: {wrong_guesses}/{max_wrong}')
+				else:
+					print('Incorrect letter guess!')
 
 # ----------------------------------------------------
 # MAIN MENU (Shorthand Supported)
